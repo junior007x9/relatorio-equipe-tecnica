@@ -7,7 +7,6 @@ import { FileText, FileDown, Save, Mic, MicOff, CalendarDays, CalendarRange, His
 import HistoryView from '@/components/History/HistoryView';
 import ManageTeamView from '@/components/Team/ManageTeamView';
 
-// Importação do quadro branco para desenho da assinatura
 const SignatureCanvas = dynamic(() => import('react-signature-canvas'), { ssr: false });
 
 export default function Home() {
@@ -183,9 +182,7 @@ export default function Home() {
                 </div>
               )}
 
-              {/* BLOCO LADO A LADO: TEXTO + ASSINATURA */}
               <div className="flex flex-col md:flex-row gap-4 mt-4">
-                  {/* Lado Esquerdo: Caixa de Texto */}
                   <div className="flex-1 relative">
                     <div className="flex justify-between items-end mb-3">
                       <label className="block text-sm md:text-lg font-semibold text-slate-700">Descrição do Atendimento:</label>
@@ -201,7 +198,6 @@ export default function Home() {
                     />
                   </div>
 
-                  {/* Lado Direito: Quadro de Assinatura */}
                   <div className="w-full md:w-72 flex flex-col">
                     <div className="flex justify-between items-end mb-3">
                       <label className="block text-sm md:text-lg font-semibold text-slate-700">Assinatura Digital:</label>
@@ -242,7 +238,8 @@ export default function Home() {
                           <p className="text-slate-600 text-sm whitespace-pre-wrap leading-relaxed flex-1">{reg.texto}</p>
                           {reg.assinatura && (
                             <div className="ml-4 text-center">
-                              <img src={reg.assinatura} alt="Assinatura" className="h-12 border-b border-slate-300 px-2" />
+                              {/* AJUSTE NA UI: h-8 deixa a assinatura menor e mais elegante */}
+                              <img src={reg.assinatura} alt="Assinatura" className="h-8 border-b border-slate-300 px-2" />
                               <span className="text-[9px] text-slate-400 block mt-1 uppercase font-bold">{reg.profissional}</span>
                             </div>
                           )}

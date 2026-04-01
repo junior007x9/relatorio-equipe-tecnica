@@ -65,14 +65,14 @@ export const gerarWord = async (dados: any, equipeDinamica: any) => {
                       ],
                       spacing: { before: 200, after: 100 }
                   }),
-                  // NOVO: A imagem entra no mesmo parágrafo do texto, logo no final!
                   new Paragraph({
                       children: [
                           new TextRun({ text: reg.texto + "   ", size: 20 }),
                           ...(reg.assinatura ? [
                               new ImageRun({
                                   data: base64ToUint8Array(reg.assinatura),
-                                  transformation: { width: 100, height: 40 },
+                                  // AJUSTE: Proporção reduzida para ficar delicada (largura 70, altura 28)
+                                  transformation: { width: 70, height: 28 },
                                   type: "png"
                               })
                           ] : [])

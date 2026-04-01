@@ -78,11 +78,11 @@ export const gerarPDF = async (dados: any, equipeDinamica: any) => {
                   ],
                   margin: [0, 5, 0, 4], fontSize: 11
                 },
-                // NOVO: Texto e Assinatura organizados em colunas para ficarem perfeitamente lado a lado
                 {
                   columns: [
                     { width: '*', text: reg.texto, alignment: 'justify', fontSize: 10, lineHeight: 1.4 },
-                    reg.assinatura ? { width: 100, image: reg.assinatura, margin: [10, 0, 0, 0] } : { width: 0, text: '' }
+                    // AJUSTE: Largura da assinatura reduzida para 70 (antes era 100)
+                    reg.assinatura ? { width: 70, image: reg.assinatura, margin: [10, 0, 0, 0] } : { width: 0, text: '' }
                   ],
                   margin: [0, 0, 0, 10]
                 },
