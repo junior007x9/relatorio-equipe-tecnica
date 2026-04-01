@@ -76,7 +76,6 @@ export const gerarPDF = async (dados: any, equipeDinamica: any) => {
               stack: [
                 {
                   text: [
-                    // CORREÇÃO: Removido o emoji e adicionado colchetes para o horário
                     { text: `[ ${reg.horario} ] - `, bold: true, color: '#be185d' },
                     { text: `${reg.area} | `, bold: true, color: '#3730a3' },
                     { text: `Por: ${reg.profissional}`, italics: true, color: '#64748b' }
@@ -93,7 +92,8 @@ export const gerarPDF = async (dados: any, equipeDinamica: any) => {
       { 
         unbreakable: true, margin: [0, 40, 0, 0],
         stack: [
-          { canvas: [{ type: 'line', x1: 100, y1: 0, x2: 415, y2: 0, lineWidth: 1, lineColor: '#000000' }], margin: [0, 0, 0, 10], alignment: 'center' },
+          // CORREÇÃO: Coordenadas matemáticas exatas para centralizar a linha (largura 515, margem interna 107)
+          { canvas: [{ type: 'line', x1: 107, y1: 0, x2: 408, y2: 0, lineWidth: 1, lineColor: '#000000' }], margin: [0, 0, 0, 10] },
           { text: 'Assinatura do(s) Profissional(is) Responsável(is)', alignment: 'center', fontSize: 10, bold: true },
           { text: 'Equipa Técnica - CSIPRC', alignment: 'center', fontSize: 9, color: '#64748b', margin: [0, 2, 0, 0] }
         ]

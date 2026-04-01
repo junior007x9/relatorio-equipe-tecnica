@@ -51,7 +51,6 @@ export const gerarWord = async (dados: any, equipeDinamica: any) => {
               childrenParagraphs.push(
                   new Paragraph({
                       children: [
-                          // CORREÇÃO: Removido o emoji
                           new TextRun({ text: `[ ${reg.horario} ] - `, bold: true, size: 20, color: "BE185D" }),
                           new TextRun({ text: `${reg.area} | `, bold: true, size: 20, color: "3730A3" }),
                           new TextRun({ text: `Por: ${reg.profissional}`, italics: true, size: 18, color: "64748B" })
@@ -75,7 +74,8 @@ export const gerarWord = async (dados: any, equipeDinamica: any) => {
       }
 
       childrenParagraphs.push(
-            new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "______________________________________________________" })], keepNext: true, spacing: { before: 800 } }),
+            // CORREÇÃO: Tamanho e número de traços ajustado para casar perfeitamente com a largura do texto
+            new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "_________________________________________" })], keepNext: true, spacing: { before: 800 } }),
             new Paragraph({ alignment: AlignmentType.CENTER, children: [ new TextRun({ text: "Assinatura do(s) Profissional(is) Responsável(is)", bold: true, size: 18 }) ], keepNext: true }),
             new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Equipa Técnica - CSIPRC", size: 16, color: "64748B" })] })
       );
