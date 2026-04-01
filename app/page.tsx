@@ -1,10 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { AREAS_TECNICAS_DEFAULT } from '@/lib/equipe';
-import { FileText, FileDown, Save, Mic, MicOff, CalendarDays, CalendarRange, History, PenLine, Users, Clock, DatabaseBackup } from 'lucide-react';
+import { FileText, FileDown, Save, Mic, MicOff, CalendarDays, CalendarRange, History, PenLine, Users, Clock, DatabaseBackup, Eraser } from 'lucide-react';
 import HistoryView from '@/components/History/HistoryView';
 import ManageTeamView from '@/components/Team/ManageTeamView';
+
+// Importação dinâmica para evitar erros de servidor no Next.js
+const SignatureCanvas = dynamic(() => import('react-signature-canvas'), { ssr: false });
 
 export default function Home() {
   const [telaAtual, setTelaAtual] = useState<'formulario' | 'historico' | 'equipe'>('formulario'); 
@@ -20,6 +24,9 @@ export default function Home() {
 
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
+  
+  // Referência para o quadro de assinatura
+  const sigCanvas = useRef<any>(null);
 
   useEffect(() => {
     setDataRelatorio(new Date().toISOString().split('T')[0]);
@@ -60,23 +67,39 @@ export default function Home() {
     else { recognitionRef.current?.start(); setIsListening(true); }
   };
 
+  const limparAssinatura = () => {
+    sigCanvas.current?.clear();
+  };
+
   const salvarRegistroTimeline = () => {
     if (!areaSelecionada) return alert("Por favor, selecione a sua Área!");
     if (!profissionalSelecionado) return alert("Por favor, selecione o seu Nome!");
     if (!relatorioTexto.trim()) return alert("A descrição do atendimento não pode estar vazia!");
+    
+    // Verifica se assinou
+    if (sigCanvas.current?.isEmpty()) {
+      return alert("Por favor, assine o seu registo antes de salvar!");
+    }
+
+    // Pega a imagem da assinatura em Base64
+    const assinaturaBase64 = sigCanvas.current.getTrimmedCanvas().toDataURL('image/png');
 
     const novoRegistro = {
       id: Date.now(),
       area: equipe[areaSelecionada].nome,
       profissional: profissionalSelecionado,
       texto: relatorioTexto,
-      horario: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+      horario: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      assinatura: assinaturaBase64 // Guarda a assinatura junto do registo
     };
 
     setRegistrosDoDia([...registrosDoDia, novoRegistro]);
+    
+    // Limpar tudo para o próximo
     setRelatorioTexto('');
     setProfissionalSelecionado('');
     setAreaSelecionada('');
+    limparAssinatura();
   };
 
   const salvarDiaCompletoNoHistorico = () => {
@@ -116,7 +139,6 @@ export default function Home() {
     }
   };
 
-  // NOVO: Função para exportar direto do Histórico
   const exportarDiaHistorico = async (dia: any, tipo: 'pdf' | 'word') => {
     const dados = { dataRelatorio: dia.data, registros: dia.registros };
     if (tipo === 'pdf') {
@@ -152,7 +174,6 @@ export default function Home() {
         </div>
 
         <div className="p-4 md:p-8">
-          {/* NOVO: Passamos a função onExport para o HistoryView */}
           {telaAtual === 'historico' && <HistoryView historico={historicoGlobal} onExport={exportarDiaHistorico} />}
           {telaAtual === 'equipe' && <ManageTeamView equipe={equipe} setEquipe={atualizarEquipe} />}
           
@@ -201,8 +222,25 @@ export default function Home() {
                 <textarea rows={6} className={`w-full rounded-xl border-2 p-4 outline-none transition-all text-slate-700 text-sm md:text-base ${isListening ? 'border-red-400 ring-4 ring-red-100' : 'border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100'}`} placeholder="Descreva as atividades deste horário..." value={relatorioTexto} onChange={(e) => setRelatorioTexto(e.target.value)}/>
               </div>
 
+              {/* NOVO: Quadro de Assinatura */}
+              <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl">
+                <div className="flex justify-between items-center mb-2">
+                  <label className="block text-sm md:text-md font-bold text-slate-700">A sua Assinatura (Obrigatório):</label>
+                  <button onClick={limparAssinatura} className="text-xs flex items-center gap-1 text-slate-500 hover:text-rose-500 transition-colors bg-white px-2 py-1 rounded shadow-sm border border-slate-200">
+                    <Eraser size={14} /> Limpar
+                  </button>
+                </div>
+                <div className="bg-white border-2 border-dashed border-slate-300 rounded-xl overflow-hidden cursor-crosshair">
+                  <SignatureCanvas 
+                    ref={sigCanvas} 
+                    penColor="black" 
+                    canvasProps={{ className: 'w-full h-40' }} 
+                  />
+                </div>
+              </div>
+
               <button onClick={salvarRegistroTimeline} className="w-full @utility btn-primary bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-2 text-lg">
-                <Save size={24} /> Enviar p/ Linha do Tempo
+                <Save size={24} /> Enviar p/ Linha do Tempo e Assinar
               </button>
 
               <hr className="my-8 border-slate-200" />
@@ -219,7 +257,15 @@ export default function Home() {
                           🕒 {reg.horario}
                         </span>
                         <p className="font-bold text-slate-800 text-sm mb-2">{reg.area} <span className="text-slate-400 font-normal ml-1">| Por: {reg.profissional}</span></p>
-                        <p className="text-slate-600 text-sm whitespace-pre-wrap leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100">{reg.texto}</p>
+                        <p className="text-slate-600 text-sm whitespace-pre-wrap leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100 mb-2">{reg.texto}</p>
+                        
+                        {/* Mostrar assinatura salva */}
+                        {reg.assinatura && (
+                          <div className="mt-3 text-right">
+                            <span className="text-[10px] text-slate-400 block mb-1">Assinado digitalmente por {reg.profissional}</span>
+                            <img src={reg.assinatura} alt="Assinatura" className="h-12 inline-block border-b border-slate-200" />
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

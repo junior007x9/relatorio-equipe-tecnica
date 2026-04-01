@@ -4,10 +4,8 @@ const getBase64ImageFromURL = async (url: string) => {
     try {
         const res = await fetch(url);
         if (!res.ok) return null; 
-        
         const blob = await res.blob();
         if (!blob.type.startsWith('image/')) return null; 
-        
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onloadend = () => resolve(reader.result);
@@ -47,11 +45,9 @@ export const gerarPDF = async (dados: any, equipeDinamica: any) => {
 
     const pdfMake = (pdfMakeModule as any).default || pdfMakeModule;
     const pdfFonts = (pdfFontsModule as any).default || pdfFontsModule;
-    
     const vfs = pdfFonts.pdfMake ? pdfFonts.pdfMake.vfs : pdfFonts.vfs;
 
     const logoBase64 = await getBase64ImageFromURL('/logo.png');
-    
     const contentArray: any[] = [];
     
     if (logoBase64) {
@@ -83,7 +79,9 @@ export const gerarPDF = async (dados: any, equipeDinamica: any) => {
                   margin: [0, 5, 0, 4], fontSize: 11
                 },
                 { text: reg.texto, margin: [0, 0, 0, 10], alignment: 'justify', fontSize: 10, lineHeight: 1.4 },
-                { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.5, lineColor: '#cbd5e1' }], margin: [0, 0, 0, 15] }
+                // NOVO: Renderiza a assinatura do profissional caso exista
+                reg.assinatura ? { image: reg.assinatura, width: 100, alignment: 'right', margin: [0, -5, 0, 5] } : {},
+                { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.5, lineColor: '#cbd5e1' }], margin: [0, 5, 0, 15] }
               ]
             }))
           : [{ text: 'Nenhum registo efetuado neste dia.', italics: true, color: '#64748b', margin: [0, 10], alignment: 'center' }]
@@ -92,10 +90,9 @@ export const gerarPDF = async (dados: any, equipeDinamica: any) => {
       { 
         unbreakable: true, margin: [0, 40, 0, 0],
         stack: [
-          // CORREÇÃO: Coordenadas matemáticas exatas para centralizar a linha (largura 515, margem interna 107)
           { canvas: [{ type: 'line', x1: 107, y1: 0, x2: 408, y2: 0, lineWidth: 1, lineColor: '#000000' }], margin: [0, 0, 0, 10] },
-          { text: 'Assinatura do(s) Profissional(is) Responsável(is)', alignment: 'center', fontSize: 10, bold: true },
-          { text: 'Equipa Técnica - CSIPRC', alignment: 'center', fontSize: 9, color: '#64748b', margin: [0, 2, 0, 0] }
+          { text: 'Visto da Coordenação / Direção', alignment: 'center', fontSize: 10, bold: true },
+          { text: 'Centro Sócioeducativo - CSIPRC', alignment: 'center', fontSize: 9, color: '#64748b', margin: [0, 2, 0, 0] }
         ]
       }
     );
@@ -108,8 +105,5 @@ export const gerarPDF = async (dados: any, equipeDinamica: any) => {
     const pdfDocGenerator = (pdfMake as any).createPdf(docDefinition, undefined, undefined, vfs);
     pdfDocGenerator.download(`Relatorio_Tecnico_${dados.dataRelatorio || new Date().toISOString().split('T')[0]}.pdf`);
     
-  } catch (err) { 
-    console.error(err); 
-    alert("Erro ao gerar o PDF. Consulte o console para mais detalhes."); 
-  }
+  } catch (err) { console.error(err); alert("Erro ao gerar o PDF. Consulte o console para mais detalhes."); }
 };
