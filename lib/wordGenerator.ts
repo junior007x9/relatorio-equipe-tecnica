@@ -14,7 +14,8 @@ const construirTabelaEquipeWord = (equipeAtual: any) => {
     const celulas = Object.values(equipeAtual).map((area: any) => {
         const children = [new Paragraph({ children: [new TextRun({ text: area.nome, bold: true })] })];
         if (area.profissionais.length === 0) {
-            children.push(new Paragraph({ text: "Nenhum profissional cadastrado", italics: true }));
+            // CORREÇÃO AQUI: itálico movido para dentro do TextRun
+            children.push(new Paragraph({ children: [new TextRun({ text: "Nenhum profissional cadastrado", italics: true })] }));
         } else {
             area.profissionais.forEach((p: any) => {
                 children.push(new Paragraph({ text: `${p.cargo}: ${p.nome} (${p.turno})` }));
@@ -46,7 +47,6 @@ export const gerarWord = async (dados: any, equipeDinamica: any) => {
             new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "REGISTROS DO ATENDIMENTO DIÁRIO", bold: true, size: 22 })], spacing: { after: 400 } })
       ];
 
-      // NOVO: Adiciona cada registo individualmente com a Hora e o Profissional
       if (dados.registros && dados.registros.length > 0) {
           dados.registros.forEach((reg: any) => {
               childrenParagraphs.push(
@@ -71,7 +71,8 @@ export const gerarWord = async (dados: any, equipeDinamica: any) => {
               );
           });
       } else {
-          childrenParagraphs.push(new Paragraph({ text: "Nenhum registo efetuado neste dia.", italics: true, alignment: AlignmentType.CENTER }));
+          // CORREÇÃO AQUI: itálico movido para dentro do TextRun
+          childrenParagraphs.push(new Paragraph({ children: [new TextRun({ text: "Nenhum registo efetuado neste dia.", italics: true })], alignment: AlignmentType.CENTER }));
       }
 
       childrenParagraphs.push(
