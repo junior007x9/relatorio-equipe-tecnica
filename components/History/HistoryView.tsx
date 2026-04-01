@@ -2,13 +2,13 @@
 "use client";
 
 import { useState } from 'react';
-import { Calendar, Search, Users, FileText, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { Calendar, Search, Users, ChevronDown, ChevronUp, FileText, FileDown } from 'lucide-react';
 
-export default function HistoryView({ historico }: any) {
+// NOVO: Adicionado onExport nas props
+export default function HistoryView({ historico, onExport }: any) {
   const [expandido, setExpandido] = useState<number | null>(null);
   const [termoBusca, setTermoBusca] = useState('');
 
-  // Filtra o histórico pela data ou conteúdo
   const historicoFiltrado = historico?.filter((dia: any) => 
     dia.data.includes(termoBusca) || 
     dia.registros.some((r: any) => r.texto.toLowerCase().includes(termoBusca.toLowerCase()) || r.profissional.toLowerCase().includes(termoBusca.toLowerCase()))
@@ -17,7 +17,6 @@ export default function HistoryView({ historico }: any) {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       
-      {/* Barra de Pesquisa */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-3 shadow-sm">
         <Search className="text-slate-400" size={20} />
         <input 
@@ -36,14 +35,12 @@ export default function HistoryView({ historico }: any) {
       ) : (
         <div className="space-y-4">
           {historicoFiltrado.map((dia: any) => {
-            // Conta os profissionais únicos que participaram neste dia
             const profissionaisEnvolvidos = Array.from(new Set(dia.registros.map((r: any) => r.profissional))).join(', ');
             const isExpanded = expandido === dia.id;
 
             return (
               <div key={dia.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden transition-all">
                 
-                {/* Cabeçalho do Card (Resumo do Dia) */}
                 <div 
                   onClick={() => setExpandido(isExpanded ? null : dia.id)}
                   className="p-5 flex flex-col md:flex-row justify-between md:items-center gap-4 cursor-pointer hover:bg-slate-50 transition-colors"
@@ -69,7 +66,6 @@ export default function HistoryView({ historico }: any) {
                   </div>
                 </div>
 
-                {/* Área Expandida (Timeline do Dia) */}
                 {isExpanded && (
                   <div className="p-5 bg-slate-50 border-t border-slate-100 space-y-4">
                     <h5 className="font-bold text-slate-700 mb-3 border-b border-slate-200 pb-2">Linha do Tempo:</h5>
@@ -82,6 +78,22 @@ export default function HistoryView({ historico }: any) {
                         <p className="text-slate-600 text-sm whitespace-pre-wrap leading-relaxed">{reg.texto}</p>
                       </div>
                     ))}
+
+                    {/* NOVO: Botões de Exportação dentro do Histórico */}
+                    <div className="mt-6 pt-4 border-t border-slate-200 flex flex-wrap gap-3">
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); onExport(dia, 'pdf'); }}
+                            className="flex items-center gap-2 bg-rose-50 text-rose-600 border border-rose-200 px-4 py-2 rounded-xl font-bold hover:bg-rose-100 hover:scale-105 transition-all text-sm shadow-sm"
+                        >
+                            <FileText size={18} /> Exportar PDF deste dia
+                        </button>
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); onExport(dia, 'word'); }}
+                            className="flex items-center gap-2 bg-cyan-50 text-cyan-600 border border-cyan-200 px-4 py-2 rounded-xl font-bold hover:bg-cyan-100 hover:scale-105 transition-all text-sm shadow-sm"
+                        >
+                            <FileDown size={18} /> Exportar Word deste dia
+                        </button>
+                    </div>
                   </div>
                 )}
               </div>

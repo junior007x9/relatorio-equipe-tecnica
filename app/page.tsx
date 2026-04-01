@@ -10,7 +10,6 @@ export default function Home() {
   const [telaAtual, setTelaAtual] = useState<'formulario' | 'historico' | 'equipe'>('formulario'); 
   const [equipe, setEquipe] = useState<any>(AREAS_TECNICAS_DEFAULT);
   
-  // NOVO: Estado para armazenar o histórico de dias fechados
   const [historicoGlobal, setHistoricoGlobal] = useState<any[]>([]);
 
   const [dataRelatorio, setDataRelatorio] = useState('');
@@ -27,7 +26,6 @@ export default function Home() {
     const equipeSalva = localStorage.getItem('equipe_csiprc');
     if (equipeSalva) setEquipe(JSON.parse(equipeSalva));
 
-    // Carrega o histórico ao iniciar
     const historicoSalvo = localStorage.getItem('historico_csiprc');
     if (historicoSalvo) setHistoricoGlobal(JSON.parse(historicoSalvo));
   }, []);
@@ -81,12 +79,10 @@ export default function Home() {
     setAreaSelecionada('');
   };
 
-  // NOVO: Salva todo o dia (vários registos) no Histórico Global
   const salvarDiaCompletoNoHistorico = () => {
     if (registrosDoDia.length === 0) return alert("Não há registos na linha do tempo para salvar!");
 
     const novoHistorico = [...historicoGlobal];
-    // Verifica se já existe um histórico salvo nesta data
     const indexExistente = novoHistorico.findIndex(h => h.data === dataRelatorio);
 
     const diaConsolidado = {
@@ -96,14 +92,11 @@ export default function Home() {
     };
 
     if (indexExistente !== -1) {
-      // Se a data já existia, substitui/atualiza
       novoHistorico[indexExistente] = diaConsolidado;
     } else {
-      // Se é um dia novo, adiciona
       novoHistorico.push(diaConsolidado);
     }
 
-    // Ordena do mais recente para o mais antigo
     novoHistorico.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
 
     setHistoricoGlobal(novoHistorico);
@@ -114,6 +107,18 @@ export default function Home() {
   const prepararExportacao = async (tipo: 'pdf' | 'word') => {
     if (registrosDoDia.length === 0) return alert("Não há registos para exportar.");
     const dados = { dataRelatorio, registros: registrosDoDia };
+    if (tipo === 'pdf') {
+        const { gerarPDF } = await import('@/lib/pdfGenerator');
+        gerarPDF(dados, equipe);
+    } else {
+        const { gerarWord } = await import('@/lib/wordGenerator');
+        gerarWord(dados, equipe);
+    }
+  };
+
+  // NOVO: Função para exportar direto do Histórico
+  const exportarDiaHistorico = async (dia: any, tipo: 'pdf' | 'word') => {
+    const dados = { dataRelatorio: dia.data, registros: dia.registros };
     if (tipo === 'pdf') {
         const { gerarPDF } = await import('@/lib/pdfGenerator');
         gerarPDF(dados, equipe);
@@ -147,8 +152,8 @@ export default function Home() {
         </div>
 
         <div className="p-4 md:p-8">
-          {/* Passa o historicoGlobal para o componente HistoryView */}
-          {telaAtual === 'historico' && <HistoryView historico={historicoGlobal} />}
+          {/* NOVO: Passamos a função onExport para o HistoryView */}
+          {telaAtual === 'historico' && <HistoryView historico={historicoGlobal} onExport={exportarDiaHistorico} />}
           {telaAtual === 'equipe' && <ManageTeamView equipe={equipe} setEquipe={atualizarEquipe} />}
           
           {telaAtual === 'formulario' && (
@@ -234,7 +239,6 @@ export default function Home() {
                   </button>
                 </div>
 
-                {/* BOTÃO DE SALVAR NO HISTÓRICO */}
                 <div className="border-t border-slate-100 pt-4 mt-2">
                   <button 
                     onClick={salvarDiaCompletoNoHistorico} 
