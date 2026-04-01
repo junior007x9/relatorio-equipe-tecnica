@@ -206,6 +206,7 @@ export default function Home() {
                       </button>
                     </div>
                     <div className="bg-white border-2 border-dashed border-slate-300 rounded-xl overflow-hidden cursor-crosshair h-[150px]">
+                      {/* @ts-expect-error - Ignora o erro de ref do next/dynamic */}
                       <SignatureCanvas 
                         ref={sigCanvas} 
                         penColor="black" 
@@ -238,7 +239,6 @@ export default function Home() {
                           <p className="text-slate-600 text-sm whitespace-pre-wrap leading-relaxed flex-1">{reg.texto}</p>
                           {reg.assinatura && (
                             <div className="ml-4 text-center">
-                              {/* AJUSTE NA UI: h-8 deixa a assinatura menor e mais elegante */}
                               <img src={reg.assinatura} alt="Assinatura" className="h-8 border-b border-slate-300 px-2" />
                               <span className="text-[9px] text-slate-400 block mt-1 uppercase font-bold">{reg.profissional}</span>
                             </div>
