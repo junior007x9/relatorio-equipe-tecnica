@@ -10,14 +10,11 @@ const carregarImagemBuffer = async (url: string) => {
     } catch (e) { return null; }
 };
 
-// Conversor da assinatura do Canvas para o Word
 const base64ToUint8Array = (base64: string) => {
     const binaryString = window.atob(base64.split(',')[1]);
     const len = binaryString.length;
     const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-    }
+    for (let i = 0; i < len; i++) bytes[i] = binaryString.charCodeAt(i);
     return bytes;
 };
 
@@ -68,31 +65,21 @@ export const gerarWord = async (dados: any, equipeDinamica: any) => {
                       ],
                       spacing: { before: 200, after: 100 }
                   }),
+                  // NOVO: A imagem entra no mesmo parágrafo do texto, logo no final!
                   new Paragraph({
-                      children: [new TextRun({ text: reg.texto, size: 20 })],
-                      alignment: AlignmentType.JUSTIFIED,
-                      spacing: { after: 200, line: 360 }
-                  })
-              );
-
-              // NOVO: Se tiver assinatura, coloca alinhada à direita no Word
-              if (reg.assinatura) {
-                  childrenParagraphs.push(
-                      new Paragraph({
-                          alignment: AlignmentType.RIGHT,
-                          children: [
+                      children: [
+                          new TextRun({ text: reg.texto + "   ", size: 20 }),
+                          ...(reg.assinatura ? [
                               new ImageRun({
                                   data: base64ToUint8Array(reg.assinatura),
-                                  transformation: { width: 120, height: 40 },
+                                  transformation: { width: 100, height: 40 },
                                   type: "png"
                               })
-                          ],
-                          spacing: { after: 200 }
-                      })
-                  );
-              }
-
-              childrenParagraphs.push(
+                          ] : [])
+                      ],
+                      alignment: AlignmentType.JUSTIFIED,
+                      spacing: { after: 200, line: 360 }
+                  }),
                   new Paragraph({
                       alignment: AlignmentType.CENTER,
                       children: [new TextRun({ text: "------------------------------------------------------", color: "CBD5E1" })],
@@ -107,29 +94,13 @@ export const gerarWord = async (dados: any, equipeDinamica: any) => {
       childrenParagraphs.push(
             new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "_________________________________________" })], keepNext: true, spacing: { before: 800 } }),
             new Paragraph({ alignment: AlignmentType.CENTER, children: [ new TextRun({ text: "Visto da Coordenação / Direção", bold: true, size: 18 }) ], keepNext: true }),
-            new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Centro Sócioeducativo - CSIPRC", size: 16, color: "64748B" })] })
+            new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Equipa Técnica - CSIPRC", size: 16, color: "64748B" })] })
       );
 
       const doc = new Document({ 
           sections: [{ 
               properties: { page: { margin: { top: 700, bottom: 700, left: 700, right: 700 } } } as any, 
-              headers: { 
-                  default: new Header({ 
-                      children: [ 
-                          new Paragraph({ 
-                              alignment: AlignmentType.CENTER, 
-                              children: [ 
-                                  logoBuffer ? new ImageRun({ 
-                                      data: new Uint8Array(logoBuffer as any), 
-                                      transformation: { width: 500, height: 120 },
-                                      type: "png" 
-                                  }) : new TextRun("") 
-                              ] 
-                          }), 
-                          new Paragraph({ text: "" }) 
-                      ] 
-                  }) 
-              }, 
+              headers: { default: new Header({ children: [ new Paragraph({ alignment: AlignmentType.CENTER, children: [ logoBuffer ? new ImageRun({ data: new Uint8Array(logoBuffer as any), transformation: { width: 500, height: 120 }, type: "png" }) : new TextRun("") ] }), new Paragraph({ text: "" }) ] }) }, 
               children: childrenParagraphs 
           }] 
       });

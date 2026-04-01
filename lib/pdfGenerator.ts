@@ -78,9 +78,14 @@ export const gerarPDF = async (dados: any, equipeDinamica: any) => {
                   ],
                   margin: [0, 5, 0, 4], fontSize: 11
                 },
-                { text: reg.texto, margin: [0, 0, 0, 10], alignment: 'justify', fontSize: 10, lineHeight: 1.4 },
-                // NOVO: Renderiza a assinatura do profissional caso exista
-                reg.assinatura ? { image: reg.assinatura, width: 100, alignment: 'right', margin: [0, -5, 0, 5] } : {},
+                // NOVO: Texto e Assinatura organizados em colunas para ficarem perfeitamente lado a lado
+                {
+                  columns: [
+                    { width: '*', text: reg.texto, alignment: 'justify', fontSize: 10, lineHeight: 1.4 },
+                    reg.assinatura ? { width: 100, image: reg.assinatura, margin: [10, 0, 0, 0] } : { width: 0, text: '' }
+                  ],
+                  margin: [0, 0, 0, 10]
+                },
                 { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.5, lineColor: '#cbd5e1' }], margin: [0, 5, 0, 15] }
               ]
             }))
@@ -105,5 +110,5 @@ export const gerarPDF = async (dados: any, equipeDinamica: any) => {
     const pdfDocGenerator = (pdfMake as any).createPdf(docDefinition, undefined, undefined, vfs);
     pdfDocGenerator.download(`Relatorio_Tecnico_${dados.dataRelatorio || new Date().toISOString().split('T')[0]}.pdf`);
     
-  } catch (err) { console.error(err); alert("Erro ao gerar o PDF. Consulte o console para mais detalhes."); }
+  } catch (err) { console.error(err); alert("Erro ao gerar o PDF."); }
 };

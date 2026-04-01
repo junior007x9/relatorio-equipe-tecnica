@@ -7,7 +7,7 @@ import { FileText, FileDown, Save, Mic, MicOff, CalendarDays, CalendarRange, His
 import HistoryView from '@/components/History/HistoryView';
 import ManageTeamView from '@/components/Team/ManageTeamView';
 
-// Importação dinâmica para evitar erros de servidor no Next.js
+// Importação do quadro branco para desenho da assinatura
 const SignatureCanvas = dynamic(() => import('react-signature-canvas'), { ssr: false });
 
 export default function Home() {
@@ -24,8 +24,6 @@ export default function Home() {
 
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
-  
-  // Referência para o quadro de assinatura
   const sigCanvas = useRef<any>(null);
 
   useEffect(() => {
@@ -67,21 +65,17 @@ export default function Home() {
     else { recognitionRef.current?.start(); setIsListening(true); }
   };
 
-  const limparAssinatura = () => {
-    sigCanvas.current?.clear();
-  };
+  const limparAssinatura = () => sigCanvas.current?.clear();
 
   const salvarRegistroTimeline = () => {
     if (!areaSelecionada) return alert("Por favor, selecione a sua Área!");
     if (!profissionalSelecionado) return alert("Por favor, selecione o seu Nome!");
     if (!relatorioTexto.trim()) return alert("A descrição do atendimento não pode estar vazia!");
     
-    // Verifica se assinou
     if (sigCanvas.current?.isEmpty()) {
-      return alert("Por favor, assine o seu registo antes de salvar!");
+      return alert("Por favor, faça a sua assinatura digital no quadro antes de salvar!");
     }
 
-    // Pega a imagem da assinatura em Base64
     const assinaturaBase64 = sigCanvas.current.getTrimmedCanvas().toDataURL('image/png');
 
     const novoRegistro = {
@@ -90,12 +84,11 @@ export default function Home() {
       profissional: profissionalSelecionado,
       texto: relatorioTexto,
       horario: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      assinatura: assinaturaBase64 // Guarda a assinatura junto do registo
+      assinatura: assinaturaBase64 
     };
 
     setRegistrosDoDia([...registrosDoDia, novoRegistro]);
     
-    // Limpar tudo para o próximo
     setRelatorioTexto('');
     setProfissionalSelecionado('');
     setAreaSelecionada('');
@@ -104,24 +97,12 @@ export default function Home() {
 
   const salvarDiaCompletoNoHistorico = () => {
     if (registrosDoDia.length === 0) return alert("Não há registos na linha do tempo para salvar!");
-
     const novoHistorico = [...historicoGlobal];
     const indexExistente = novoHistorico.findIndex(h => h.data === dataRelatorio);
-
-    const diaConsolidado = {
-      id: indexExistente !== -1 ? novoHistorico[indexExistente].id : Date.now(),
-      data: dataRelatorio,
-      registros: [...registrosDoDia]
-    };
-
-    if (indexExistente !== -1) {
-      novoHistorico[indexExistente] = diaConsolidado;
-    } else {
-      novoHistorico.push(diaConsolidado);
-    }
-
+    const diaConsolidado = { id: indexExistente !== -1 ? novoHistorico[indexExistente].id : Date.now(), data: dataRelatorio, registros: [...registrosDoDia] };
+    if (indexExistente !== -1) novoHistorico[indexExistente] = diaConsolidado;
+    else novoHistorico.push(diaConsolidado);
     novoHistorico.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
-
     setHistoricoGlobal(novoHistorico);
     localStorage.setItem('historico_csiprc', JSON.stringify(novoHistorico));
     alert("O Relatório Diário foi salvo com sucesso na aba Histórico!");
@@ -130,24 +111,14 @@ export default function Home() {
   const prepararExportacao = async (tipo: 'pdf' | 'word') => {
     if (registrosDoDia.length === 0) return alert("Não há registos para exportar.");
     const dados = { dataRelatorio, registros: registrosDoDia };
-    if (tipo === 'pdf') {
-        const { gerarPDF } = await import('@/lib/pdfGenerator');
-        gerarPDF(dados, equipe);
-    } else {
-        const { gerarWord } = await import('@/lib/wordGenerator');
-        gerarWord(dados, equipe);
-    }
+    if (tipo === 'pdf') { const { gerarPDF } = await import('@/lib/pdfGenerator'); gerarPDF(dados, equipe); } 
+    else { const { gerarWord } = await import('@/lib/wordGenerator'); gerarWord(dados, equipe); }
   };
 
   const exportarDiaHistorico = async (dia: any, tipo: 'pdf' | 'word') => {
     const dados = { dataRelatorio: dia.data, registros: dia.registros };
-    if (tipo === 'pdf') {
-        const { gerarPDF } = await import('@/lib/pdfGenerator');
-        gerarPDF(dados, equipe);
-    } else {
-        const { gerarWord } = await import('@/lib/wordGenerator');
-        gerarWord(dados, equipe);
-    }
+    if (tipo === 'pdf') { const { gerarPDF } = await import('@/lib/pdfGenerator'); gerarPDF(dados, equipe); } 
+    else { const { gerarWord } = await import('@/lib/wordGenerator'); gerarWord(dados, equipe); }
   };
 
   return (
@@ -212,31 +183,40 @@ export default function Home() {
                 </div>
               )}
 
-              <div className="relative">
-                <div className="flex justify-between items-end mb-3 mt-4">
-                  <label className="block text-sm md:text-lg font-semibold text-slate-700">Descrição do Atendimento:</label>
-                  <button onClick={toggleMicrofone} type="button" className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm transition-all shadow-md ${isListening ? 'bg-red-500 text-white animate-pulse' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'}`}>
-                    {isListening ? <MicOff size={18} /> : <Mic size={18} />} {isListening ? 'A Gravar...' : 'Ditar'}
-                  </button>
-                </div>
-                <textarea rows={6} className={`w-full rounded-xl border-2 p-4 outline-none transition-all text-slate-700 text-sm md:text-base ${isListening ? 'border-red-400 ring-4 ring-red-100' : 'border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100'}`} placeholder="Descreva as atividades deste horário..." value={relatorioTexto} onChange={(e) => setRelatorioTexto(e.target.value)}/>
-              </div>
+              {/* BLOCO LADO A LADO: TEXTO + ASSINATURA */}
+              <div className="flex flex-col md:flex-row gap-4 mt-4">
+                  {/* Lado Esquerdo: Caixa de Texto */}
+                  <div className="flex-1 relative">
+                    <div className="flex justify-between items-end mb-3">
+                      <label className="block text-sm md:text-lg font-semibold text-slate-700">Descrição do Atendimento:</label>
+                      <button onClick={toggleMicrofone} type="button" className={`flex items-center gap-2 px-3 py-1.5 rounded-full font-bold text-xs md:text-sm transition-all shadow-md ${isListening ? 'bg-red-500 text-white animate-pulse' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'}`}>
+                        {isListening ? <MicOff size={16} /> : <Mic size={16} />} {isListening ? 'Gravando...' : 'Ditar'}
+                      </button>
+                    </div>
+                    <textarea 
+                      className={`w-full h-[150px] rounded-xl border-2 p-4 outline-none transition-all text-slate-700 text-sm md:text-base resize-none ${isListening ? 'border-red-400 ring-4 ring-red-100' : 'border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100'}`} 
+                      placeholder="Descreva as atividades..." 
+                      value={relatorioTexto} 
+                      onChange={(e) => setRelatorioTexto(e.target.value)}
+                    />
+                  </div>
 
-              {/* NOVO: Quadro de Assinatura */}
-              <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl">
-                <div className="flex justify-between items-center mb-2">
-                  <label className="block text-sm md:text-md font-bold text-slate-700">A sua Assinatura (Obrigatório):</label>
-                  <button onClick={limparAssinatura} className="text-xs flex items-center gap-1 text-slate-500 hover:text-rose-500 transition-colors bg-white px-2 py-1 rounded shadow-sm border border-slate-200">
-                    <Eraser size={14} /> Limpar
-                  </button>
-                </div>
-                <div className="bg-white border-2 border-dashed border-slate-300 rounded-xl overflow-hidden cursor-crosshair">
-                  <SignatureCanvas 
-                    ref={sigCanvas} 
-                    penColor="black" 
-                    canvasProps={{ className: 'w-full h-40' }} 
-                  />
-                </div>
+                  {/* Lado Direito: Quadro de Assinatura */}
+                  <div className="w-full md:w-72 flex flex-col">
+                    <div className="flex justify-between items-end mb-3">
+                      <label className="block text-sm md:text-lg font-semibold text-slate-700">Assinatura Digital:</label>
+                      <button onClick={limparAssinatura} className="text-xs flex items-center gap-1 text-slate-500 hover:text-rose-500 transition-colors bg-white px-2 py-1.5 rounded-full shadow-sm border border-slate-200">
+                        <Eraser size={14} /> Limpar
+                      </button>
+                    </div>
+                    <div className="bg-white border-2 border-dashed border-slate-300 rounded-xl overflow-hidden cursor-crosshair h-[150px]">
+                      <SignatureCanvas 
+                        ref={sigCanvas} 
+                        penColor="black" 
+                        canvasProps={{ className: 'w-full h-full' }} 
+                      />
+                    </div>
+                  </div>
               </div>
 
               <button onClick={salvarRegistroTimeline} className="w-full @utility btn-primary bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-2 text-lg">
@@ -257,15 +237,16 @@ export default function Home() {
                           🕒 {reg.horario}
                         </span>
                         <p className="font-bold text-slate-800 text-sm mb-2">{reg.area} <span className="text-slate-400 font-normal ml-1">| Por: {reg.profissional}</span></p>
-                        <p className="text-slate-600 text-sm whitespace-pre-wrap leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100 mb-2">{reg.texto}</p>
                         
-                        {/* Mostrar assinatura salva */}
-                        {reg.assinatura && (
-                          <div className="mt-3 text-right">
-                            <span className="text-[10px] text-slate-400 block mb-1">Assinado digitalmente por {reg.profissional}</span>
-                            <img src={reg.assinatura} alt="Assinatura" className="h-12 inline-block border-b border-slate-200" />
-                          </div>
-                        )}
+                        <div className="flex justify-between items-end bg-slate-50 p-3 rounded-lg border border-slate-100">
+                          <p className="text-slate-600 text-sm whitespace-pre-wrap leading-relaxed flex-1">{reg.texto}</p>
+                          {reg.assinatura && (
+                            <div className="ml-4 text-center">
+                              <img src={reg.assinatura} alt="Assinatura" className="h-12 border-b border-slate-300 px-2" />
+                              <span className="text-[9px] text-slate-400 block mt-1 uppercase font-bold">{reg.profissional}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -274,8 +255,6 @@ export default function Home() {
 
               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                 <h2 className="text-xl font-black text-slate-800 mb-2 text-center">Exportar e Fechar o Dia</h2>
-                <p className="text-sm text-slate-500 mb-6 text-center">Gere o documento final e salve os dados permanentemente no Histórico.</p>
-                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <button onClick={() => prepararExportacao('pdf')} className="bg-white border-2 border-rose-500 text-rose-600 font-bold py-3 px-4 rounded-xl shadow-sm hover:bg-rose-50 transition-all flex items-center justify-center gap-2">
                     <FileText size={20} /> PDF do Dia ({registrosDoDia.length} partes)
@@ -284,12 +263,8 @@ export default function Home() {
                     <FileDown size={20} /> Word do Dia ({registrosDoDia.length} partes)
                   </button>
                 </div>
-
                 <div className="border-t border-slate-100 pt-4 mt-2">
-                  <button 
-                    onClick={salvarDiaCompletoNoHistorico} 
-                    className="w-full bg-slate-800 text-white font-bold py-4 rounded-xl shadow-md hover:bg-slate-900 transition-all flex items-center justify-center gap-2"
-                  >
+                  <button onClick={salvarDiaCompletoNoHistorico} className="w-full bg-slate-800 text-white font-bold py-4 rounded-xl shadow-md hover:bg-slate-900 transition-all flex items-center justify-center gap-2">
                     <DatabaseBackup size={20} /> Salvar Relatório Completo no Histórico 
                   </button>
                 </div>
