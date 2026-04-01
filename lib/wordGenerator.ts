@@ -14,7 +14,6 @@ const construirTabelaEquipeWord = (equipeAtual: any) => {
     const celulas = Object.values(equipeAtual).map((area: any) => {
         const children = [new Paragraph({ children: [new TextRun({ text: area.nome, bold: true })] })];
         if (area.profissionais.length === 0) {
-            // CORREÇÃO AQUI: itálico movido para dentro do TextRun
             children.push(new Paragraph({ children: [new TextRun({ text: "Nenhum profissional cadastrado", italics: true })] }));
         } else {
             area.profissionais.forEach((p: any) => {
@@ -71,7 +70,6 @@ export const gerarWord = async (dados: any, equipeDinamica: any) => {
               );
           });
       } else {
-          // CORREÇÃO AQUI: itálico movido para dentro do TextRun
           childrenParagraphs.push(new Paragraph({ children: [new TextRun({ text: "Nenhum registo efetuado neste dia.", italics: true })], alignment: AlignmentType.CENTER }));
       }
 
@@ -82,7 +80,27 @@ export const gerarWord = async (dados: any, equipeDinamica: any) => {
       );
 
       const doc = new Document({ 
-          sections: [{ properties: { page: { margin: { top: 700, bottom: 700, left: 700, right: 700 } } } as any, headers: { default: new Header({ children: [ new Paragraph({ alignment: AlignmentType.CENTER, children: [ logoBuffer ? new ImageRun({ data: new Uint8Array(logoBuffer as any), transformation: { width: 500, height: 120 } }) : new TextRun("") ] }), new Paragraph({ text: "" }) ] }) }, children: childrenParagraphs }] 
+          sections: [{ 
+              properties: { page: { margin: { top: 700, bottom: 700, left: 700, right: 700 } } } as any, 
+              headers: { 
+                  default: new Header({ 
+                      children: [ 
+                          new Paragraph({ 
+                              alignment: AlignmentType.CENTER, 
+                              children: [ 
+                                  logoBuffer ? new ImageRun({ 
+                                      data: new Uint8Array(logoBuffer as any), 
+                                      transformation: { width: 500, height: 120 },
+                                      type: "png" // CORREÇÃO: Tipo explícito adicionado
+                                  }) : new TextRun("") 
+                              ] 
+                          }), 
+                          new Paragraph({ text: "" }) 
+                      ] 
+                  }) 
+              }, 
+              children: childrenParagraphs 
+          }] 
       });
       
       const blob = await Packer.toBlob(doc);
