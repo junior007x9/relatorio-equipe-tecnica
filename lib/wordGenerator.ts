@@ -51,7 +51,8 @@ export const gerarWord = async (dados: any, equipeDinamica: any) => {
               childrenParagraphs.push(
                   new Paragraph({
                       children: [
-                          new TextRun({ text: `🕒 ${reg.horario} - `, bold: true, size: 20, color: "BE185D" }),
+                          // CORREÇÃO: Removido o emoji
+                          new TextRun({ text: `[ ${reg.horario} ] - `, bold: true, size: 20, color: "BE185D" }),
                           new TextRun({ text: `${reg.area} | `, bold: true, size: 20, color: "3730A3" }),
                           new TextRun({ text: `Por: ${reg.profissional}`, italics: true, size: 18, color: "64748B" })
                       ],
@@ -91,7 +92,7 @@ export const gerarWord = async (dados: any, equipeDinamica: any) => {
                                   logoBuffer ? new ImageRun({ 
                                       data: new Uint8Array(logoBuffer as any), 
                                       transformation: { width: 500, height: 120 },
-                                      type: "png" // CORREÇÃO: Tipo explícito adicionado
+                                      type: "png"
                                   }) : new TextRun("") 
                               ] 
                           }), 

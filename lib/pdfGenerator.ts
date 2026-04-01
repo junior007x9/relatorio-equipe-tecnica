@@ -3,11 +3,9 @@
 const getBase64ImageFromURL = async (url: string) => {
     try {
         const res = await fetch(url);
-        // PROTEÇÃO 1: Se o ficheiro não for encontrado (ex: 404), cancela.
         if (!res.ok) return null; 
         
         const blob = await res.blob();
-        // PROTEÇÃO 2: Garante que o ficheiro retornado é realmente uma imagem e não HTML.
         if (!blob.type.startsWith('image/')) return null; 
         
         return new Promise((resolve, reject) => {
@@ -54,10 +52,8 @@ export const gerarPDF = async (dados: any, equipeDinamica: any) => {
 
     const logoBase64 = await getBase64ImageFromURL('/logo.png');
     
-    // Inicia o array vazio
     const contentArray: any[] = [];
     
-    // PROTEÇÃO 3: Só injeta o objeto de imagem se o base64 for válido
     if (logoBase64) {
         contentArray.push({ image: logoBase64, width: 250, alignment: 'center', margin: [0, 0, 0, 10] });
     }
@@ -80,7 +76,8 @@ export const gerarPDF = async (dados: any, equipeDinamica: any) => {
               stack: [
                 {
                   text: [
-                    { text: `🕒 ${reg.horario} - `, bold: true, color: '#be185d' },
+                    // CORREÇÃO: Removido o emoji e adicionado colchetes para o horário
+                    { text: `[ ${reg.horario} ] - `, bold: true, color: '#be185d' },
                     { text: `${reg.area} | `, bold: true, color: '#3730a3' },
                     { text: `Por: ${reg.profissional}`, italics: true, color: '#64748b' }
                   ],
@@ -109,7 +106,6 @@ export const gerarPDF = async (dados: any, equipeDinamica: any) => {
     };
     
     const pdfDocGenerator = (pdfMake as any).createPdf(docDefinition, undefined, undefined, vfs);
-    
     pdfDocGenerator.download(`Relatorio_Tecnico_${dados.dataRelatorio || new Date().toISOString().split('T')[0]}.pdf`);
     
   } catch (err) { 
