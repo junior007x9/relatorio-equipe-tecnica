@@ -7,7 +7,8 @@ import { FileText, FileDown, Save, Mic, MicOff, CalendarDays, CalendarRange, His
 import HistoryView from '@/components/History/HistoryView';
 import ManageTeamView from '@/components/Team/ManageTeamView';
 
-const SignatureCanvas = dynamic(() => import('react-signature-canvas'), { ssr: false });
+// CORREÇÃO: Colocamos o ": any" aqui para o TypeScript aceitar a propriedade 'ref' sem reclamar
+const SignatureCanvas: any = dynamic(() => import('react-signature-canvas'), { ssr: false });
 
 export default function Home() {
   const [telaAtual, setTelaAtual] = useState<'formulario' | 'historico' | 'equipe'>('formulario'); 
@@ -205,8 +206,8 @@ export default function Home() {
                         <Eraser size={14} /> Limpar
                       </button>
                     </div>
+                    {/* O comentário problemático foi removido! */}
                     <div className="bg-white border-2 border-dashed border-slate-300 rounded-xl overflow-hidden cursor-crosshair h-[150px]">
-                      {/* @ts-expect-error - Ignora o erro de ref do next/dynamic */}
                       <SignatureCanvas 
                         ref={sigCanvas} 
                         penColor="black" 
