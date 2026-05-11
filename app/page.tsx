@@ -1,19 +1,24 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
-import dynamic from 'next/dynamic';
 import { AREAS_TECNICAS_DEFAULT } from '@/lib/equipe';
-import { FileText, FileDown, Save, Mic, MicOff, CalendarDays, CalendarRange, History, PenLine, Users, Clock, DatabaseBackup, Eraser } from 'lucide-react';
+import { FileText, FileDown, Save, Mic, MicOff, Clock, DatabaseBackup, PenLine, History, Users } from 'lucide-react';
 import HistoryView from '@/components/History/HistoryView';
 import ManageTeamView from '@/components/Team/ManageTeamView';
 
-// CORREÇÃO: Colocamos o ": any" aqui para o TypeScript aceitar a propriedade 'ref' sem reclamar
-const SignatureCanvas: any = dynamic(() => import('react-signature-canvas'), { ssr: false });
+// 1. LISTA DE ASSINATURAS SALVAS NO SISTEMA
+// Aqui você cadastra o nome que vai aparecer na lista e o caminho do arquivo que você colocou na pasta public/assinaturas/
+const ASSINATURAS_PRE_SALVAS = [
+  { nome: "Vanderlan", caminho: "/assinaturas/vanderlan.png" },
+  { nome: "Junior", caminho: "/assinaturas/junior.png" },
+  { nome: "Caroline", caminho: "/assinaturas/caroline.png" },
+  { nome: "Samia", caminho: "/assinaturas/samia.png" },
+  { nome: "Luana", caminho: "/assinaturas/luana.png" },
+];
 
 export default function Home() {
   const [telaAtual, setTelaAtual] = useState<'formulario' | 'historico' | 'equipe'>('formulario'); 
   const [equipe, setEquipe] = useState<any>(AREAS_TECNICAS_DEFAULT);
-  
   const [historicoGlobal, setHistoricoGlobal] = useState<any[]>([]);
 
   const [dataRelatorio, setDataRelatorio] = useState('');
@@ -22,9 +27,12 @@ export default function Home() {
   const [relatorioTexto, setRelatorioTexto] = useState('');
   const [registrosDoDia, setRegistrosDoDia] = useState<any[]>([]);
 
+  // Estado para armazenar a imagem convertida da assinatura selecionada
+  const [assinaturaImagem, setAssinaturaImagem] = useState<string | null>(null);
+  const [assinaturaSelectValue, setAssinaturaSelectValue] = useState('');
+
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
-  const sigCanvas = useRef<any>(null);
 
   useEffect(() => {
     setDataRelatorio(new Date().toISOString().split('T')[0]);
@@ -65,18 +73,44 @@ export default function Home() {
     else { recognitionRef.current?.start(); setIsListening(true); }
   };
 
-  const limparAssinatura = () => sigCanvas.current?.clear();
+  // 2. FUNÇÃO QUE BUSCA A ASSINATURA NA PASTA E CONVERTE PARA O RELATÓRIO
+  const carregarAssinaturaDoSistema = async (caminho: string) => {
+    setAssinaturaSelectValue(caminho);
+    
+    if (!caminho) {
+      setAssinaturaImagem(null);
+      return;
+    }
+
+    try {
+      // Faz o download do arquivo local
+      const res = await fetch(caminho);
+      if (!res.ok) throw new Error("Arquivo não encontrado");
+      
+      const blob = await res.blob();
+      const reader = new FileReader();
+      
+      // Converte para Base64 para funcionar no Word e PDF
+      reader.onloadend = () => {
+        setAssinaturaImagem(reader.result as string);
+      };
+      reader.readAsDataURL(blob);
+    } catch (error) {
+      console.error("Erro ao carregar a assinatura:", error);
+      alert(`Erro ao carregar a assinatura. Verifique se o arquivo existe na pasta public${caminho}`);
+      setAssinaturaImagem(null);
+      setAssinaturaSelectValue('');
+    }
+  };
 
   const salvarRegistroTimeline = () => {
     if (!areaSelecionada) return alert("Por favor, selecione a sua Área!");
     if (!profissionalSelecionado) return alert("Por favor, selecione o seu Nome!");
     if (!relatorioTexto.trim()) return alert("A descrição do atendimento não pode estar vazia!");
     
-    if (sigCanvas.current?.isEmpty()) {
-      return alert("Por favor, faça a sua assinatura digital no quadro antes de salvar!");
+    if (!assinaturaImagem) {
+      return alert("Por favor, selecione a sua assinatura na lista antes de salvar!");
     }
-
-    const assinaturaBase64 = sigCanvas.current.getTrimmedCanvas().toDataURL('image/png');
 
     const novoRegistro = {
       id: Date.now(),
@@ -84,15 +118,17 @@ export default function Home() {
       profissional: profissionalSelecionado,
       texto: relatorioTexto,
       horario: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      assinatura: assinaturaBase64 
+      assinatura: assinaturaImagem 
     };
 
     setRegistrosDoDia([...registrosDoDia, novoRegistro]);
     
+    // Limpar o formulário para o próximo
     setRelatorioTexto('');
     setProfissionalSelecionado('');
     setAreaSelecionada('');
-    limparAssinatura();
+    setAssinaturaImagem(null);
+    setAssinaturaSelectValue('');
   };
 
   const salvarDiaCompletoNoHistorico = () => {
@@ -199,20 +235,27 @@ export default function Home() {
                     />
                   </div>
 
+                  {/* 3. NOVA ÁREA DE SELEÇÃO DE ASSINATURA */}
                   <div className="w-full md:w-72 flex flex-col">
-                    <div className="flex justify-between items-end mb-3">
-                      <label className="block text-sm md:text-lg font-semibold text-slate-700">Assinatura Digital:</label>
-                      <button onClick={limparAssinatura} className="text-xs flex items-center gap-1 text-slate-500 hover:text-rose-500 transition-colors bg-white px-2 py-1.5 rounded-full shadow-sm border border-slate-200">
-                        <Eraser size={14} /> Limpar
-                      </button>
-                    </div>
-                    {/* O comentário problemático foi removido! */}
-                    <div className="bg-white border-2 border-dashed border-slate-300 rounded-xl overflow-hidden cursor-crosshair h-[150px]">
-                      <SignatureCanvas 
-                        ref={sigCanvas} 
-                        penColor="black" 
-                        canvasProps={{ className: 'w-full h-full' }} 
-                      />
+                    <label className="block text-sm md:text-lg font-semibold text-slate-700 mb-3">Sua Assinatura:</label>
+                    
+                    <select 
+                      value={assinaturaSelectValue}
+                      onChange={(e) => carregarAssinaturaDoSistema(e.target.value)}
+                      className="w-full p-3 mb-3 rounded-xl border-2 border-indigo-200 outline-none focus:ring-2 focus:ring-indigo-400 font-bold text-slate-700"
+                    >
+                      <option value="">Selecione sua assinatura...</option>
+                      {ASSINATURAS_PRE_SALVAS.map((ass, idx) => (
+                        <option key={idx} value={ass.caminho}>{ass.nome}</option>
+                      ))}
+                    </select>
+
+                    <div className="bg-white border border-slate-300 rounded-xl p-2 flex items-center justify-center text-center relative h-[85px] overflow-hidden">
+                      {assinaturaImagem ? (
+                        <img src={assinaturaImagem} alt="Assinatura" className="h-full object-contain" />
+                      ) : (
+                        <span className="text-xs text-slate-400 font-medium">Nenhuma assinatura selecionada</span>
+                      )}
                     </div>
                   </div>
               </div>
@@ -240,7 +283,7 @@ export default function Home() {
                           <p className="text-slate-600 text-sm whitespace-pre-wrap leading-relaxed flex-1">{reg.texto}</p>
                           {reg.assinatura && (
                             <div className="ml-4 text-center">
-                              <img src={reg.assinatura} alt="Assinatura" className="h-8 border-b border-slate-300 px-2" />
+                              <img src={reg.assinatura} alt="Assinatura" className="h-8 border-b border-slate-300 px-2 object-contain" />
                               <span className="text-[9px] text-slate-400 block mt-1 uppercase font-bold">{reg.profissional}</span>
                             </div>
                           )}
