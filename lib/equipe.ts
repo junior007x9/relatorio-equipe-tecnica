@@ -1,29 +1,35 @@
 // lib/equipe.ts
+
 export const AREAS_TECNICAS_DEFAULT = {
+  direcao: {
+    nome: "Direção e Coordenação",
+    profissionais: [
+      { cargo: "Diretora", nome: "Kelma Fabiana Ribeiro Silva", turno: "Manhã" },
+      { cargo: "Coordenadora Técnica", nome: "Vane Glesse da Silva Claudino", turno: "Manhã" }
+    ]
+  },
   pedagogica: {
     nome: "Área Pedagógica",
     profissionais: [
-      { cargo: "Pedagogo", nome: "Vanderlan", turno: "Manhã" },
-      { cargo: "Socioeducador", nome: "Junior", turno: "Tarde" }
+      { cargo: "Pedagogo", nome: "Antônio Vanderlan Fernandes de Sousa", turno: "Manhã" }
     ]
   },
   psicologica: {
     nome: "Área Psicológica",
     profissionais: [
-      { cargo: "Psicóloga", nome: "Caroline", turno: "Manhã" } // Corrigido para Manhã
+      { cargo: "Psicóloga", nome: "Carolina Rodrigues de Flores", turno: "Tarde" }
     ]
   },
   social: {
     nome: "Área Social",
     profissionais: [
-      { cargo: "Assistente Social", nome: "Samia", turno: "Tarde" } // Corrigido para Tarde
+      { cargo: "Assistente Social", nome: "Sâmia Maria da Fonseca Couto", turno: "Tarde" }
     ]
   },
-  saude: {
-    nome: "Área da Saúde",
+  juridica: {
+    nome: "Área Jurídica",
     profissionais: [
-      { cargo: "Enfermeira", nome: "A definir", turno: "Manhã" },
-      { cargo: "Téc. de Enfermagem", nome: "Luana", turno: "Tarde" }
+      { cargo: "Advogada", nome: "Silmara dos Santos Sá", turno: "Manhã" }
     ]
   }
 };

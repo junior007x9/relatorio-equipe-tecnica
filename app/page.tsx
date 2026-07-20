@@ -17,7 +17,7 @@ const ASSINATURAS_PRE_SALVAS = [
 ];
 
 export default function Home() {
-  const [telaAtual, setTelaAtual] = useState<'formulario' | 'historico' | 'equipe'>('formulario');
+  const [telaAtual, setTelaAtual] = useState<'formulario' | 'historico' | 'equipe'>('formulario'); 
   const [equipe, setEquipe] = useState<any>(AREAS_TECNICAS_DEFAULT);
   const [historicoGlobal, setHistoricoGlobal] = useState<any[]>([]);
 
@@ -50,15 +50,15 @@ export default function Home() {
   // MICROFONE CORRIGIDO AQUI
   useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-
+    
     if (SpeechRecognition) {
       const recognition = new SpeechRecognition();
       recognition.lang = 'pt-BR';
       recognition.continuous = true;
-
+      
       // Desativar resultados intermediários para evitar palavras bagunçadas
-      recognition.interimResults = false;
-
+      recognition.interimResults = false; 
+      
       recognition.onresult = (event: any) => {
         let finalTranscript = '';
         for (let i = event.resultIndex; i < event.results.length; ++i) {
@@ -66,7 +66,7 @@ export default function Home() {
             finalTranscript += event.results[i][0].transcript;
           }
         }
-
+        
         if (finalTranscript) {
           setRelatorioTexto((prev) => {
             const textoAtual = prev.trim();
@@ -75,12 +75,12 @@ export default function Home() {
           });
         }
       };
-
+      
       recognition.onerror = (event: any) => {
         console.error("Erro no reconhecimento de voz:", event.error);
         setIsListening(false);
       };
-
+      
       recognition.onend = () => setIsListening(false);
       recognitionRef.current = recognition;
     } else {
@@ -89,13 +89,13 @@ export default function Home() {
   }, []);
 
   const toggleMicrofone = () => {
-    if (isListening) { recognitionRef.current?.stop(); setIsListening(false); }
+    if (isListening) { recognitionRef.current?.stop(); setIsListening(false); } 
     else { recognitionRef.current?.start(); setIsListening(true); }
   };
 
   const carregarAssinaturaDoSistema = async (caminho: string) => {
     setAssinaturaSelectValue(caminho);
-
+    
     if (!caminho) {
       setAssinaturaImagem(null);
       return;
@@ -104,10 +104,10 @@ export default function Home() {
     try {
       const res = await fetch(caminho);
       if (!res.ok) throw new Error("Arquivo não encontrado");
-
+      
       const blob = await res.blob();
       const reader = new FileReader();
-
+      
       reader.onloadend = () => {
         setAssinaturaImagem(reader.result as string);
       };
@@ -124,7 +124,7 @@ export default function Home() {
     if (!areaSelecionada) return alert("Por favor, selecione a sua Área!");
     if (!profissionalSelecionado) return alert("Por favor, selecione o seu Nome!");
     if (!relatorioTexto.trim()) return alert("A descrição do atendimento não pode estar vazia!");
-
+    
     if (!assinaturaImagem) {
       return alert("Por favor, selecione a sua assinatura na lista antes de salvar!");
     }
@@ -135,11 +135,11 @@ export default function Home() {
       profissional: profissionalSelecionado,
       texto: relatorioTexto,
       horario: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      assinatura: assinaturaImagem
+      assinatura: assinaturaImagem 
     };
 
     setRegistrosDoDia([...registrosDoDia, novoRegistro]);
-
+    
     setRelatorioTexto('');
     setProfissionalSelecionado('');
     setAreaSelecionada('');
@@ -148,7 +148,7 @@ export default function Home() {
   };
 
   const salvarDiaCompletoNoHistorico = () => {
-    if (registrosDoDia.length === 0) return alert("Não há registos na linha do tempo para salvar!");
+    if (registrosDoDia.length === 0) return alert("Não há registros na linha do tempo para salvar!");
     const novoHistorico = [...historicoGlobal];
     const indexExistente = novoHistorico.findIndex(h => h.data === dataRelatorio);
     const diaConsolidado = { id: indexExistente !== -1 ? novoHistorico[indexExistente].id : Date.now(), data: dataRelatorio, registros: [...registrosDoDia] };
@@ -161,31 +161,31 @@ export default function Home() {
   };
 
   const prepararExportacao = async (tipo: 'pdf' | 'word') => {
-    if (registrosDoDia.length === 0) return alert("Não há registos para exportar.");
+    if (registrosDoDia.length === 0) return alert("Não há registros para exportar.");
     const dados = { dataRelatorio, registros: registrosDoDia };
-    if (tipo === 'pdf') { const { gerarPDF } = await import('@/lib/pdfGenerator'); gerarPDF(dados, equipe); }
+    if (tipo === 'pdf') { const { gerarPDF } = await import('@/lib/pdfGenerator'); gerarPDF(dados, equipe); } 
     else { const { gerarWord } = await import('@/lib/wordGenerator'); gerarWord(dados, equipe); }
   };
 
   const exportarDiaHistorico = async (dia: any, tipo: 'pdf' | 'word') => {
     const dados = { dataRelatorio: dia.data, registros: dia.registros };
-    if (tipo === 'pdf') { const { gerarPDF } = await import('@/lib/pdfGenerator'); gerarPDF(dados, equipe); }
+    if (tipo === 'pdf') { const { gerarPDF } = await import('@/lib/pdfGenerator'); gerarPDF(dados, equipe); } 
     else { const { gerarWord } = await import('@/lib/wordGenerator'); gerarWord(dados, equipe); }
   };
 
   return (
     <main className="min-h-screen p-2 md:p-8 bg-slate-50 flex justify-center">
       <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 relative">
-
+        
         <div className="bg-gradient-to-r from-indigo-600 to-purple-700 p-6 md:p-8 text-white relative">
           <h1 className="text-2xl md:text-4xl font-extrabold mb-2 drop-shadow-md pr-16 md:pr-0">
-            {telaAtual === 'formulario' ? 'Registo da Equipe Técnica' : telaAtual === 'historico' ? 'Histórico de Registos' : 'Gerenciar Equipe'}
+            {telaAtual === 'formulario' ? 'Registro da Equipe Técnica' : telaAtual === 'historico' ? 'Histórico de Registros' : 'Gerenciar Equipe'}
           </h1>
           <p className="text-indigo-100 font-medium text-sm md:text-base mb-6 md:mb-0">CSIPRC - Sistema Multidisciplinar</p>
 
           <div className="flex flex-wrap gap-2 md:absolute md:top-8 md:right-8">
             <button onClick={() => setTelaAtual('formulario')} className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all ${telaAtual === 'formulario' ? 'bg-white text-indigo-700 shadow-md' : 'bg-white/20 hover:bg-white/30 text-white'}`}>
-              <PenLine size={16} /> <span className="hidden md:inline">Registo</span>
+              <PenLine size={16} /> <span className="hidden md:inline">Registro</span>
             </button>
             <button onClick={() => setTelaAtual('historico')} className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all ${telaAtual === 'historico' ? 'bg-white text-indigo-700 shadow-md' : 'bg-white/20 hover:bg-white/30 text-white'}`}>
               <History size={16} /> <span className="hidden md:inline">Histórico</span>
@@ -199,13 +199,13 @@ export default function Home() {
         <div className="p-4 md:p-8">
           {telaAtual === 'historico' && <HistoryView historico={historicoGlobal} onExport={exportarDiaHistorico} />}
           {telaAtual === 'equipe' && <ManageTeamView equipe={equipe} setEquipe={atualizarEquipe} />}
-
+          
           {telaAtual === 'formulario' && (
             <div className="space-y-6 animate-in fade-in duration-500">
-
+              
               <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                <label className="block text-sm md:text-lg font-semibold text-slate-700 mb-2">📅 Data do Registo:</label>
-                <input type="date" value={dataRelatorio} onChange={(e) => setDataRelatorio(e.target.value)} className="w-full md:w-auto p-3 rounded-lg border-2 border-indigo-200 focus:border-indigo-500 outline-none text-slate-700 font-bold" />
+                <label className="block text-sm md:text-lg font-semibold text-slate-700 mb-2">📅 Data do Registro:</label>
+                <input type="date" value={dataRelatorio} onChange={(e) => setDataRelatorio(e.target.value)} className="w-full md:w-auto p-3 rounded-lg border-2 border-indigo-200 focus:border-indigo-500 outline-none text-slate-700 font-bold"/>
               </div>
 
               <div>
@@ -221,9 +221,9 @@ export default function Home() {
 
               {areaSelecionada && equipe[areaSelecionada] && equipe[areaSelecionada].profissionais.length > 0 && (
                 <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-5 animate-in zoom-in duration-300">
-                  <label className="block text-sm md:text-md font-bold text-indigo-900 mb-2">Quem está a realizar este registo?</label>
-                  <select
-                    value={profissionalSelecionado}
+                  <label className="block text-sm md:text-md font-bold text-indigo-900 mb-2">Quem está realizando este registro?</label>
+                  <select 
+                    value={profissionalSelecionado} 
                     onChange={(e) => setProfissionalSelecionado(e.target.value)}
                     className="w-full p-3 rounded-xl border border-indigo-200 outline-none focus:ring-2 focus:ring-indigo-400 font-medium text-slate-700"
                   >
@@ -236,43 +236,43 @@ export default function Home() {
               )}
 
               <div className="flex flex-col md:flex-row gap-4 mt-4">
-                <div className="flex-1 relative">
-                  <div className="flex justify-between items-end mb-3">
-                    <label className="block text-sm md:text-lg font-semibold text-slate-700">Descrição do Atendimento:</label>
-                    <button onClick={toggleMicrofone} type="button" className={`flex items-center gap-2 px-3 py-1.5 rounded-full font-bold text-xs md:text-sm transition-all shadow-md ${isListening ? 'bg-red-500 text-white animate-pulse' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'}`}>
-                      {isListening ? <MicOff size={16} /> : <Mic size={16} />} {isListening ? 'Gravando...' : 'Ditar'}
-                    </button>
+                  <div className="flex-1 relative">
+                    <div className="flex justify-between items-end mb-3">
+                      <label className="block text-sm md:text-lg font-semibold text-slate-700">Descrição do Atendimento:</label>
+                      <button onClick={toggleMicrofone} type="button" className={`flex items-center gap-2 px-3 py-1.5 rounded-full font-bold text-xs md:text-sm transition-all shadow-md ${isListening ? 'bg-red-500 text-white animate-pulse' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'}`}>
+                        {isListening ? <MicOff size={16} /> : <Mic size={16} />} {isListening ? 'Gravando...' : 'Ditar'}
+                      </button>
+                    </div>
+                    <textarea 
+                      className={`w-full h-[150px] rounded-xl border-2 p-4 outline-none transition-all text-slate-700 text-sm md:text-base resize-none ${isListening ? 'border-red-400 ring-4 ring-red-100' : 'border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100'}`} 
+                      placeholder="Descreva as atividades..." 
+                      value={relatorioTexto} 
+                      onChange={(e) => setRelatorioTexto(e.target.value)}
+                    />
                   </div>
-                  <textarea
-                    className={`w-full h-[150px] rounded-xl border-2 p-4 outline-none transition-all text-slate-700 text-sm md:text-base resize-none ${isListening ? 'border-red-400 ring-4 ring-red-100' : 'border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100'}`}
-                    placeholder="Descreva as atividades..."
-                    value={relatorioTexto}
-                    onChange={(e) => setRelatorioTexto(e.target.value)}
-                  />
-                </div>
 
-                <div className="w-full md:w-72 flex flex-col">
-                  <label className="block text-sm md:text-lg font-semibold text-slate-700 mb-3">Sua Assinatura:</label>
+                  <div className="w-full md:w-72 flex flex-col">
+                    <label className="block text-sm md:text-lg font-semibold text-slate-700 mb-3">Sua Assinatura:</label>
+                    
+                    <select 
+                      value={assinaturaSelectValue}
+                      onChange={(e) => carregarAssinaturaDoSistema(e.target.value)}
+                      className="w-full p-3 mb-3 rounded-xl border-2 border-indigo-200 outline-none focus:ring-2 focus:ring-indigo-400 font-bold text-slate-700"
+                    >
+                      <option value="">Selecione sua assinatura...</option>
+                      {ASSINATURAS_PRE_SALVAS.map((ass, idx) => (
+                        <option key={idx} value={ass.caminho}>{ass.nome}</option>
+                      ))}
+                    </select>
 
-                  <select
-                    value={assinaturaSelectValue}
-                    onChange={(e) => carregarAssinaturaDoSistema(e.target.value)}
-                    className="w-full p-3 mb-3 rounded-xl border-2 border-indigo-200 outline-none focus:ring-2 focus:ring-indigo-400 font-bold text-slate-700"
-                  >
-                    <option value="">Selecione sua assinatura...</option>
-                    {ASSINATURAS_PRE_SALVAS.map((ass, idx) => (
-                      <option key={idx} value={ass.caminho}>{ass.nome}</option>
-                    ))}
-                  </select>
-
-                  <div className="bg-white border border-slate-300 rounded-xl p-2 flex items-center justify-center text-center relative h-[85px] overflow-hidden">
-                    {assinaturaImagem ? (
-                      <img src={assinaturaImagem} alt="Assinatura" className="h-full object-contain" />
-                    ) : (
-                      <span className="text-xs text-slate-400 font-medium">Nenhuma assinatura selecionada</span>
-                    )}
+                    <div className="bg-white border border-slate-300 rounded-xl p-2 flex items-center justify-center text-center relative h-[85px] overflow-hidden">
+                      {assinaturaImagem ? (
+                        <img src={assinaturaImagem} alt="Assinatura" className="h-full object-contain" />
+                      ) : (
+                        <span className="text-xs text-slate-400 font-medium">Nenhuma assinatura selecionada</span>
+                      )}
+                    </div>
                   </div>
-                </div>
               </div>
 
               <button onClick={salvarRegistroTimeline} className="w-full @utility btn-primary bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-2 text-lg">
@@ -284,7 +284,7 @@ export default function Home() {
               {registrosDoDia.length > 0 && (
                 <div className="bg-slate-100 p-6 rounded-2xl border border-slate-200 mb-8 shadow-inner">
                   <h3 className="text-lg font-black text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-300 pb-2">
-                    <Clock size={20} className="text-indigo-600" /> Registos Salvos Hoje ({registrosDoDia.length})
+                    <Clock size={20} className="text-indigo-600"/> Registros Salvos Hoje ({registrosDoDia.length})
                   </h3>
                   <div className="space-y-4">
                     {registrosDoDia.map((reg) => (
@@ -293,7 +293,7 @@ export default function Home() {
                           🕒 {reg.horario}
                         </span>
                         <p className="font-bold text-slate-800 text-sm mb-2">{reg.area} <span className="text-slate-400 font-normal ml-1">| Por: {reg.profissional}</span></p>
-
+                        
                         <div className="flex justify-between items-end bg-slate-50 p-3 rounded-lg border border-slate-100">
                           <p className="text-slate-600 text-sm whitespace-pre-wrap leading-relaxed flex-1">{reg.texto}</p>
                           {reg.assinatura && (
@@ -321,7 +321,7 @@ export default function Home() {
                 </div>
                 <div className="border-t border-slate-100 pt-4 mt-2">
                   <button onClick={salvarDiaCompletoNoHistorico} className="w-full bg-slate-800 text-white font-bold py-4 rounded-xl shadow-md hover:bg-slate-900 transition-all flex items-center justify-center gap-2">
-                    <DatabaseBackup size={20} /> Salvar Relatório Completo no Histórico
+                    <DatabaseBackup size={20} /> Salvar Relatório Completo no Histórico 
                   </button>
                 </div>
               </div>

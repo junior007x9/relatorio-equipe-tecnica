@@ -43,11 +43,11 @@ export const gerarWord = async (dados: any, equipeDinamica: any) => {
       const noSpacing = { after: 0, before: 0 }; 
       
       const childrenParagraphs = [
-            new Paragraph({ alignment: AlignmentType.CENTER, children: [ new TextRun({ text: "RELATÓRIO DE ATENDIMENTO – EQUIPA TÉCNICA", bold: true, size: 28, color: "1E3A8A" }) ], spacing: noSpacing }),
+            new Paragraph({ alignment: AlignmentType.CENTER, children: [ new TextRun({ text: "RELATÓRIO DE ATENDIMENTO – EQUIPE TÉCNICA", bold: true, size: 28, color: "1E3A8A" }) ], spacing: noSpacing }),
             new Paragraph({ alignment: AlignmentType.CENTER, children: [ new TextRun({ text: "CENTRO SÓCIOEDUCATIVO DE INTERNAÇÃO PROVISÓRIA DA REGIÃO DOS COCAIS - CSIPRC", bold: true, size: 16, color: "64748B" }) ], spacing: { after: 200 } }),
-            new Paragraph({ alignment: AlignmentType.CENTER, children: [ new TextRun({ text: `DATA DO REGISTO: ${dados.dataRelatorio ? dados.dataRelatorio.split('-').reverse().join('/') : new Date().toLocaleDateString('pt-BR')}`, bold: true, size: 20, color: "EC4899" }) ], spacing: { after: 400 } }),
+            new Paragraph({ alignment: AlignmentType.CENTER, children: [ new TextRun({ text: `DATA DO REGISTRO: ${dados.dataRelatorio ? dados.dataRelatorio.split('-').reverse().join('/') : new Date().toLocaleDateString('pt-BR')}`, bold: true, size: 20, color: "EC4899" }) ], spacing: { after: 400 } }),
             
-            new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "COMPOSIÇÃO DA EQUIPA TÉCNICA", bold: true, size: 22 })], spacing: { after: 200 } }),
+            new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "COMPOSIÇÃO DA EQUIPE TÉCNICA", bold: true, size: 22 })], spacing: { after: 200 } }),
             new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: construirTabelaEquipeWord(equipeDinamica) }),
 
             new Paragraph({ text: "", spacing: { after: 600 } }),
@@ -88,13 +88,13 @@ export const gerarWord = async (dados: any, equipeDinamica: any) => {
               );
           });
       } else {
-          childrenParagraphs.push(new Paragraph({ children: [new TextRun({ text: "Nenhum registo efetuado neste dia.", italics: true })], alignment: AlignmentType.CENTER }));
+          childrenParagraphs.push(new Paragraph({ children: [new TextRun({ text: "Nenhum registro efetuado neste dia.", italics: true })], alignment: AlignmentType.CENTER }));
       }
 
       childrenParagraphs.push(
             new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "_________________________________________" })], keepNext: true, spacing: { before: 800 } }),
             new Paragraph({ alignment: AlignmentType.CENTER, children: [ new TextRun({ text: "Visto da Coordenação / Direção", bold: true, size: 18 }) ], keepNext: true }),
-            new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Equipa Técnica - CSIPRC", size: 16, color: "64748B" })] })
+            new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Equipe Técnica - CSIPRC", size: 16, color: "64748B" })] })
       );
 
       const doc = new Document({ 
@@ -107,5 +107,5 @@ export const gerarWord = async (dados: any, equipeDinamica: any) => {
       
       const blob = await Packer.toBlob(doc);
       saveAs(blob, `Relatorio_Tecnico_${dados.dataRelatorio || new Date().toISOString().split('T')[0]}.docx`);
-  } catch (err) { console.error(err); alert("Erro ao criar o ficheiro do Word."); }
+  } catch (err) { console.error(err); alert("Erro ao criar o arquivo do Word."); }
 };

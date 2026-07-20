@@ -55,11 +55,11 @@ export const gerarPDF = async (dados: any, equipeDinamica: any) => {
     }
     
     contentArray.push(
-      { text: 'RELATÓRIO DE ATENDIMENTO - EQUIPA TÉCNICA', style: 'mainTitle' },
+      { text: 'RELATÓRIO DE ATENDIMENTO - EQUIPE TÉCNICA', style: 'mainTitle' },
       { text: 'CENTRO SÓCIOEDUCATIVO DE INTERNAÇÃO PROVISÓRIA DA REGIÃO DOS COCAIS - CSIPRC', style: 'subTitle' },
-      { text: `DATA DO REGISTO: ${dados.dataRelatorio ? dados.dataRelatorio.split('-').reverse().join('/') : new Date().toLocaleDateString('pt-BR')}`, style: 'dateTitle' },
+      { text: `DATA DO REGISTRO: ${dados.dataRelatorio ? dados.dataRelatorio.split('-').reverse().join('/') : new Date().toLocaleDateString('pt-BR')}`, style: 'dateTitle' },
       
-      criarCabecalhoSecao('👥 COMPOSIÇÃO DA EQUIPA TÉCNICA MULTIDISCIPLINAR', '#3730a3'),
+      criarCabecalhoSecao('👥 COMPOSIÇÃO DA EQUIPE TÉCNICA MULTIDISCIPLINAR', '#3730a3'),
       {
         table: { widths: ['*', '*'], body: construirTabelaEquipe(equipeDinamica) },
         layout: 'lightHorizontalLines', margin: [0, 0, 0, 10], fontSize: 10
@@ -89,7 +89,7 @@ export const gerarPDF = async (dados: any, equipeDinamica: any) => {
                 { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.5, lineColor: '#cbd5e1' }], margin: [0, 5, 0, 15] }
               ]
             }))
-          : [{ text: 'Nenhum registo efetuado neste dia.', italics: true, color: '#64748b', margin: [0, 10], alignment: 'center' }]
+          : [{ text: 'Nenhum registro efetuado neste dia.', italics: true, color: '#64748b', margin: [0, 10], alignment: 'center' }]
       },
 
       { 
