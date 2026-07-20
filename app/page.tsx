@@ -47,7 +47,7 @@ export default function Home() {
     localStorage.setItem('equipe_csiprc', JSON.stringify(novaEquipe));
   };
 
-  // MICROFONE CORRIGIDO AQUI
+  // MICROFONE CORRIGIDO
   useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     
@@ -55,8 +55,6 @@ export default function Home() {
       const recognition = new SpeechRecognition();
       recognition.lang = 'pt-BR';
       recognition.continuous = true;
-      
-      // Desativar resultados intermediários para evitar palavras bagunçadas
       recognition.interimResults = false; 
       
       recognition.onresult = (event: any) => {
@@ -147,21 +145,41 @@ export default function Home() {
     setAssinaturaSelectValue('');
   };
 
+  // LÓGICA DE SALVAR NO HISTÓRICO CORRIGIDA
   const salvarDiaCompletoNoHistorico = () => {
     if (registrosDoDia.length === 0) return alert("Não há registros na linha do tempo para salvar!");
+    
     const novoHistorico = [...historicoGlobal];
     const indexExistente = novoHistorico.findIndex(h => h.data === dataRelatorio);
-    const diaConsolidado = { id: indexExistente !== -1 ? novoHistorico[indexExistente].id : Date.now(), data: dataRelatorio, registros: [...registrosDoDia] };
-    if (indexExistente !== -1) novoHistorico[indexExistente] = diaConsolidado;
-    else novoHistorico.push(diaConsolidado);
+    
+    if (indexExistente !== -1) {
+      // Se já existe um histórico para hoje, JUNTA os registros novos com os antigos
+      novoHistorico[indexExistente].registros = [
+        ...novoHistorico[indexExistente].registros, 
+        ...registrosDoDia
+      ];
+    } else {
+      // Se não existe, cria um dia novo
+      novoHistorico.push({ 
+        id: Date.now(), 
+        data: dataRelatorio, 
+        registros: [...registrosDoDia] 
+      });
+    }
+
     novoHistorico.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+    
     setHistoricoGlobal(novoHistorico);
     localStorage.setItem('historico_csiprc', JSON.stringify(novoHistorico));
-    alert("O Relatório Diário foi salvo com sucesso na aba Histórico!");
+    
+    // LIMPA A TELA PARA O PRÓXIMO TÉCNICO
+    setRegistrosDoDia([]);
+    
+    alert("Registros adicionados ao Histórico com sucesso! A tela foi limpa para o próximo profissional.");
   };
 
   const prepararExportacao = async (tipo: 'pdf' | 'word') => {
-    if (registrosDoDia.length === 0) return alert("Não há registros para exportar.");
+    if (registrosDoDia.length === 0) return alert("Não há registros para exportar. (Dica: Se você já salvou, exporte pela aba Histórico)");
     const dados = { dataRelatorio, registros: registrosDoDia };
     if (tipo === 'pdf') { const { gerarPDF } = await import('@/lib/pdfGenerator'); gerarPDF(dados, equipe); } 
     else { const { gerarWord } = await import('@/lib/wordGenerator'); gerarWord(dados, equipe); }
@@ -284,7 +302,7 @@ export default function Home() {
               {registrosDoDia.length > 0 && (
                 <div className="bg-slate-100 p-6 rounded-2xl border border-slate-200 mb-8 shadow-inner">
                   <h3 className="text-lg font-black text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-300 pb-2">
-                    <Clock size={20} className="text-indigo-600"/> Registros Salvos Hoje ({registrosDoDia.length})
+                    <Clock size={20} className="text-indigo-600"/> Meus Registros na Tela ({registrosDoDia.length})
                   </h3>
                   <div className="space-y-4">
                     {registrosDoDia.map((reg) => (
@@ -310,18 +328,18 @@ export default function Home() {
               )}
 
               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <h2 className="text-xl font-black text-slate-800 mb-2 text-center">Exportar e Fechar o Dia</h2>
+                <h2 className="text-xl font-black text-slate-800 mb-2 text-center">Exportar ou Adicionar ao Histórico</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <button onClick={() => prepararExportacao('pdf')} className="bg-white border-2 border-rose-500 text-rose-600 font-bold py-3 px-4 rounded-xl shadow-sm hover:bg-rose-50 transition-all flex items-center justify-center gap-2">
-                    <FileText size={20} /> PDF do Dia ({registrosDoDia.length} partes)
+                    <FileText size={20} /> Exportar Apenas o Meu (PDF)
                   </button>
                   <button onClick={() => prepararExportacao('word')} className="bg-white border-2 border-cyan-500 text-cyan-600 font-bold py-3 px-4 rounded-xl shadow-sm hover:bg-cyan-50 transition-all flex items-center justify-center gap-2">
-                    <FileDown size={20} /> Word do Dia ({registrosDoDia.length} partes)
+                    <FileDown size={20} /> Exportar Apenas o Meu (Word)
                   </button>
                 </div>
                 <div className="border-t border-slate-100 pt-4 mt-2">
                   <button onClick={salvarDiaCompletoNoHistorico} className="w-full bg-slate-800 text-white font-bold py-4 rounded-xl shadow-md hover:bg-slate-900 transition-all flex items-center justify-center gap-2">
-                    <DatabaseBackup size={20} /> Salvar Relatório Completo no Histórico 
+                    <DatabaseBackup size={20} /> Salvar Meus Registros no Histórico (Limpar Tela)
                   </button>
                 </div>
               </div>
