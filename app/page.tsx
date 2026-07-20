@@ -6,14 +6,15 @@ import { FileText, FileDown, Save, Mic, MicOff, Clock, DatabaseBackup, PenLine, 
 import HistoryView from '@/components/History/HistoryView';
 import ManageTeamView from '@/components/Team/ManageTeamView';
 
-// 1. LISTA DE ASSINATURAS SALVAS NO SISTEMA
-// Aqui você cadastra o nome que vai aparecer na lista e o caminho do arquivo que você colocou na pasta public/assinaturas/
+// 1. LISTA DE ASSINATURAS SALVAS NO SISTEMA CORRIGIDA
+// Atualizada apenas com os membros da equipe atual
 const ASSINATURAS_PRE_SALVAS = [
-  { nome: "Vanderlan", caminho: "/assinaturas/vanderlan.png" },
-  { nome: "Junior", caminho: "/assinaturas/junior.png" },
-  { nome: "Caroline", caminho: "/assinaturas/caroline.png" },
-  { nome: "Samia", caminho: "/assinaturas/samia.png" },
-  { nome: "Luana", caminho: "/assinaturas/luana.png" },
+  { nome: "Antônio Vanderlan Fernandes de Sousa - Pedagogo", caminho: "/assinaturas/vanderlan.png" },
+  { nome: "Carolina Rodrigues de Flores - Psicóloga", caminho: "/assinaturas/caroline.png" },
+  { nome: "Kelma Fabiana Ribeiro Silva - Diretora", caminho: "/assinaturas/kelma.png" },
+  { nome: "Sâmia Maria da Fonseca Couto - Assist. Social", caminho: "/assinaturas/samia.png" },
+  { nome: "Silmara dos Santos Sá - Advogada", caminho: "/assinaturas/silmara.png" },
+  { nome: "Vane Glesse da Silva Claudino - Coord. Técnica", caminho: "/assinaturas/vanne.png" },
 ];
 
 export default function Home() {
@@ -163,7 +164,7 @@ export default function Home() {
         
         <div className="bg-gradient-to-r from-indigo-600 to-purple-700 p-6 md:p-8 text-white relative">
           <h1 className="text-2xl md:text-4xl font-extrabold mb-2 drop-shadow-md pr-16 md:pr-0">
-            {telaAtual === 'formulario' ? 'Registo da Equipa Técnica' : telaAtual === 'historico' ? 'Histórico de Registos' : 'Gerenciar Equipe'}
+            {telaAtual === 'formulario' ? 'Registo da Equipe Técnica' : telaAtual === 'historico' ? 'Histórico de Registos' : 'Gerenciar Equipe'}
           </h1>
           <p className="text-indigo-100 font-medium text-sm md:text-base mb-6 md:mb-0">CSIPRC - Sistema Multidisciplinar</p>
 
